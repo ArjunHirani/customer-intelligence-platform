@@ -13,7 +13,7 @@
     "log_frequency",
     "high_value_flag"
   ],
-  "auc": 0.9852,
+  "auc": 0.9847,
   "churn_threshold_days": 90,
   "model_type": "XGBClassifier"
 }

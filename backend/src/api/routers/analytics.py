@@ -7,10 +7,10 @@ from sqlalchemy import create_engine, text
 
 router = APIRouter()
 
-engine = create_engine(
-    'postgresql://postgres:password@localhost:5433/customer_intelligence',
-    pool_pre_ping=True
-)
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5433/customer_intelligence')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 @router.get("/overview")
 def get_overview():
