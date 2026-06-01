@@ -1,0 +1,19 @@
+{
+  "feature_cols": [
+    "frequency",
+    "monetary",
+    "avg_order_value",
+    "return_rate",
+    "product_diversity",
+    "total_orders",
+    "total_revenue",
+    "segment_score",
+    "revenue_per_order",
+    "log_monetary",
+    "log_frequency",
+    "high_value_flag"
+  ],
+  "auc": 0.9852,
+  "churn_threshold_days": 90,
+  "model_type": "XGBClassifier"
+}
