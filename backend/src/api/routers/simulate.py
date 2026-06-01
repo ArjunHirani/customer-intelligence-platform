@@ -30,8 +30,8 @@ def what_if_simulation(request: WhatIfRequest):
     customers = [dict(r._mapping) for r in rows]
     n = len(customers)
 
-    avg_clv = sum(c['clv_12m'] or 0 for c in customers) / n if n > 0 else 0
-    avg_monetary = sum(c['monetary'] or 0 for c in customers) / n if n > 0 else 0
+    avg_clv = sum(float(c['clv_12m'] or 0) for c in customers) / n if n > 0 else 0
+    avg_monetary = sum(float(c['monetary'] or 0) for c in customers) / n if n > 0 else 0
 
     retention_lift = min(request.discount_pct * 0.8, 40) / 100
     estimated_revenue_saved = avg_clv * retention_lift * n
