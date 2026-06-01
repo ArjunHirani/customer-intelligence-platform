@@ -1,8 +1,18 @@
-﻿from sqlalchemy import create_engine, text
+﻿import os
+from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 
-DATABASE_URL = 'postgresql://postgres:password@localhost:5433/customer_intelligence'
+load_dotenv()
 
-print(f"[db] Connecting to: {DATABASE_URL}")
+DATABASE_URL = os.getenv(
+    'DATABASE_URL',
+    'postgresql://postgres:password@localhost:5433/customer_intelligence'
+)
+
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+print(f"[db] Connecting to: {DATABASE_URL[:40]}...")
 
 engine = create_engine(
     DATABASE_URL,
