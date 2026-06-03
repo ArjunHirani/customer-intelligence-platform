@@ -33,25 +33,26 @@ def what_if_simulation(request: WhatIfRequest):
     avg_clv = sum(float(c['clv_12m'] or 0) for c in customers) / n if n > 0 else 0
     avg_monetary = sum(float(c['monetary'] or 0) for c in customers) / n if n > 0 else 0
 
-    retention_lift = min(request.discount_pct * 0.8, 40) / 100
+    discount = float(request.discount_pct)
+    retention_lift = min(discount * 0.8, 40) / 100
     estimated_revenue_saved = avg_clv * retention_lift * n
-    cost_of_intervention = avg_monetary * (request.discount_pct / 100) * n
+    cost_of_intervention = avg_monetary * (discount / 100) * n
     roi = round(
         (estimated_revenue_saved - cost_of_intervention) / max(cost_of_intervention, 1) * 100, 2
     ) if cost_of_intervention > 0 else 0
 
     if roi > 50:
-        recommendation = f"Strong ROI of {roi:.1f}%. Recommend proceeding with this campaign."
+        recommendation = f"Strong ROI of {roi:.1f}% with {discount:.0f}% discount. Recommend proceeding."
     elif roi > 0:
-        recommendation = f"Positive ROI of {roi:.1f}%. Campaign is viable but margins are thin."
+        recommendation = f"Positive ROI of {roi:.1f}% with {discount:.0f}% discount. Campaign is viable."
     else:
-        recommendation = f"Negative ROI of {roi:.1f}%. Consider reducing discount or targeting fewer customers."
+        recommendation = f"Negative ROI of {roi:.1f}% with {discount:.0f}% discount. Consider reducing the discount."
 
     return WhatIfResponse(
         segment=request.segment,
         customers_targeted=n,
         avg_clv_targeted=round(avg_clv, 2),
-        discount_pct=request.discount_pct,
+        discount_pct=discount,
         cost_of_intervention=round(cost_of_intervention, 2),
         estimated_revenue_saved=round(estimated_revenue_saved, 2),
         roi=roi,
