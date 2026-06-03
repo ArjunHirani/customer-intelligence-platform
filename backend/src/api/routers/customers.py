@@ -101,24 +101,44 @@ def get_customer(customer_id: str):
 
 @router.get("/{customer_id}/risk", response_model=ChurnRisk)
 def get_customer_risk(customer_id: str):
-    cached = redis_client.get(f'customer:{customer_id}:features')
+    cached = redis_client.get(f'customer:{customer_id}:features') if redis_client else None
     if not cached:
-        raise HTTPException(status_code=404, detail=f"Customer {customer_id} not found")
+        with engine.connect() as conn:
+            row = conn.execute(text('''
+                SELECT cf.*, c.total_orders, c.total_revenue
+                FROM customer_features cf
+                JOIN customers c ON cf.customer_id = c.customer_id
+                WHERE cf.customer_id = :cid
+            '''), {'cid': customer_id}).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Customer {customer_id} not found")
+        data = dict(row._mapping)
+        features = {
+            'customer_id': customer_id,
+            'churn_score': float(data.get('churn_score') or 0.5),
+            'rfm_segment': data.get('rfm_segment'),
+            'monetary': float(data.get('monetary') or 0),
+            'frequency': int(data.get('frequency') or 1),
+            'avg_order_value': float(data.get('avg_order_value') or 0),
+            'return_rate': float(data.get('return_rate') or 0),
+            'product_diversity': int(data.get('product_diversity') or 0),
+            'total_orders': int(data.get('total_orders') or 0),
+            'total_revenue': float(data.get('total_revenue') or 0),
+            'clv_12m': float(data.get('clv_12m') or 0),
+        }
+    else:
+        features = json.loads(cached)
 
-    features = json.loads(cached)
     churn_score = features.get('churn_score') or 0.5
-
     model, meta = load_churn_model()
     feature_cols = meta['feature_cols']
-
+    monetary = features.get('monetary') or 0
+    frequency = features.get('frequency') or 1
     segment_map = {
         'Champions': 8, 'Loyal Customers': 7, 'Potential Loyalists': 6,
         'Recent Customers': 5, 'Promising': 4, 'At Risk': 3,
         'Cannot Lose Them': 2, 'Hibernating': 1
     }
-    monetary = features.get('monetary') or 0
-    frequency = features.get('frequency') or 1
-
     row = {
         'frequency': features.get('frequency') or 0,
         'monetary': monetary,
@@ -133,18 +153,15 @@ def get_customer_risk(customer_id: str):
         'log_frequency': float(np.log1p(frequency)),
         'high_value_flag': 1 if monetary > 2000 else 0
     }
-
     X = pd.DataFrame([row])[feature_cols]
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X)[0]
-
     top_factors = sorted(
         [{'feature': col, 'shap_value': round(float(val), 4)}
          for col, val in zip(feature_cols, shap_values)],
         key=lambda x: abs(x['shap_value']),
         reverse=True
     )[:5]
-
     return {
         'customer_id': customer_id,
         'churn_score': round(churn_score, 4),
