@@ -19,10 +19,10 @@ from src.utils.logger import get_logger
 
 logger = get_logger('churn_model')
 
-engine = create_engine(
-    'postgresql://postgres:password@localhost:5433/customer_intelligence',
-    pool_pre_ping=True
-)
+_db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5433/customer_intelligence')
+if _db_url.startswith('postgres://'):
+    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+engine = create_engine(_db_url, pool_size=5, max_overflow=10, pool_pre_ping=True)
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'models_saved')
 os.makedirs(MODELS_DIR, exist_ok=True)
