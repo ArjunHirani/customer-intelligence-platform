@@ -18,8 +18,12 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localho
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
-redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+try:
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+    redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+    redis_client.ping()
+except Exception:
+    redis_client = None
 MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'models_saved')
 
 def load_churn_model():

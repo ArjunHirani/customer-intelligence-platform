@@ -18,12 +18,12 @@ export default function WhatIf() {
   const simulate = () => {
     setLoading(true)
     setError(null)
-    runWhatIf({ segment, discount_pct: discount, n_customers: nCustomers })
+    setResult(null)
+    runWhatIf({ segment, discount_pct: Number(discount), n_customers: Number(nCustomers) })
       .then(r => setResult(r.data))
       .catch(() => setError('Simulation failed. Try a different segment.'))
       .finally(() => setLoading(false))
   }
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
