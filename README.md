@@ -35,16 +35,16 @@ E-commerce and SaaS companies lose millions in revenue to customer churn — and
 ## 📸 Dashboard Screenshots
 
 ### Overview — Revenue trends, KPIs, top customers
-![Overview Tab](https://via.placeholder.com/800x400?text=Overview+Tab+Screenshot)
+![Overview Tab](screenshots/Overview.png)
 
 ### Segments — 8 RFM segments with radar analysis
-![Segments Tab](https://via.placeholder.com/800x400?text=Segments+Tab+Screenshot)
+![Segments Tab](screenshots/Segments.png)
 
 ### Churn Risk — Per-customer SHAP explainability
-![Churn Risk Tab](https://via.placeholder.com/800x400?text=Churn+Risk+Tab+Screenshot)
+![Churn Risk Tab](screenshots/ChurnRisk.png)
 
 ### What-If Simulator — Campaign ROI before you spend
-![WhatIf Tab](https://via.placeholder.com/800x400?text=WhatIf+Tab+Screenshot)
+![WhatIf Tab](screenshots/WhatIf.png)
 
 ---
 
@@ -282,7 +282,7 @@ customer-intelligence-platform/
 ## 👨‍💻 Author
 
 **Arjun Hirani**
-B.Tech Electronics and Communication Engineering, Nirma University (2024–2028)
+ B.Tech Electronics and Communication Engineering, Nirma University (2024–2028)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077b5?logo=linkedin)](https://www.linkedin.com/in/arjun-hirani-949494381/)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?logo=github)](https://github.com/ArjunHirani)
