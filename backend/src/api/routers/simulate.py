@@ -55,7 +55,7 @@ def what_if_simulation(request: WhatIfRequest):
     #          20% discount → 16% retained
     #          30% discount → 24% retained
     #          50% discount → 35% retained (cap)
-    base_retention_rate = min(discount * 0.008, 0.35)
+    base_retention_rate = min(0.05 + (discount - 5) * 0.008, 0.30)
 
     # Customers likely to churn among our targeted group
     churners_in_group = n * avg_churn
