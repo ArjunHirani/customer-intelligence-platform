@@ -16,14 +16,20 @@ export default function WhatIf() {
   const [error, setError]           = useState(null)
 
   const simulate = () => {
+    const payload = {
+      segment: segment,
+      discount_pct: parseFloat(discount),
+      n_customers: parseInt(nCustomers)
+    }
     setLoading(true)
     setError(null)
     setResult(null)
-    runWhatIf({ segment, discount_pct: Number(discount), n_customers: Number(nCustomers) })
+    runWhatIf(payload)
       .then(r => setResult(r.data))
-      .catch(() => setError('Simulation failed. Try a different segment.'))
+      .catch(() => setError('Simulation failed. Try again.'))
       .finally(() => setLoading(false))
   }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
@@ -35,7 +41,6 @@ export default function WhatIf() {
         </p>
 
         <div className="space-y-5">
-          {/* Segment */}
           <div>
             <label className="block text-xs text-slate-400 mb-1.5">Target segment</label>
             <select
@@ -48,15 +53,15 @@ export default function WhatIf() {
             </select>
           </div>
 
-          {/* Discount */}
           <div>
             <div className="flex justify-between text-xs mb-1.5">
               <label className="text-slate-400">Discount offered</label>
               <span className="font-bold text-indigo-400">{discount}%</span>
             </div>
             <input
-              type="range" min={5} max={50} value={discount}
-              onChange={e => setDiscount(Number(e.target.value))}
+              type="range" min={5} max={50} step={1}
+              value={discount}
+              onChange={e => setDiscount(parseInt(e.target.value))}
               className="w-full accent-indigo-500"
             />
             <div className="flex justify-between text-xs text-slate-600 mt-0.5">
@@ -64,15 +69,15 @@ export default function WhatIf() {
             </div>
           </div>
 
-          {/* N customers */}
           <div>
             <div className="flex justify-between text-xs mb-1.5">
               <label className="text-slate-400">Customers to target</label>
               <span className="font-bold text-indigo-400">{nCustomers}</span>
             </div>
             <input
-              type="range" min={5} max={200} value={nCustomers}
-              onChange={e => setNCustomers(Number(e.target.value))}
+              type="range" min={5} max={200} step={1}
+              value={nCustomers}
+              onChange={e => setNCustomers(parseInt(e.target.value))}
               className="w-full accent-indigo-500"
             />
           </div>
@@ -96,14 +101,16 @@ export default function WhatIf() {
 
       {result && (
         <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-5">
-          <h3 className="text-sm font-semibold text-slate-300">Simulation Results</h3>
+          <h3 className="text-sm font-semibold text-slate-300">
+            Results — {result.segment} @ {result.discount_pct}% discount
+          </h3>
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Customers targeted',    value: result.customers_targeted,                         color: 'indigo' },
-              { label: 'Avg CLV targeted',       value: `£${result.avg_clv_targeted?.toLocaleString()}`,  color: 'blue'   },
-              { label: 'Cost of campaign',       value: `£${result.cost_of_intervention?.toLocaleString()}`, color: 'amber'},
-              { label: 'Est. revenue saved',     value: `£${result.estimated_revenue_saved?.toLocaleString()}`, color: 'emerald'},
+              { label: 'Customers targeted',  value: result.customers_targeted },
+              { label: 'Avg CLV targeted',    value: `£${result.avg_clv_targeted?.toLocaleString()}` },
+              { label: 'Cost of campaign',    value: `£${result.cost_of_intervention?.toLocaleString()}` },
+              { label: 'Est. revenue saved',  value: `£${result.estimated_revenue_saved?.toLocaleString()}` },
             ].map(item => (
               <div key={item.label} className="bg-slate-900 rounded-lg p-3">
                 <p className="text-xs text-slate-500">{item.label}</p>
@@ -112,7 +119,6 @@ export default function WhatIf() {
             ))}
           </div>
 
-          {/* ROI meter */}
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Campaign ROI</span>
@@ -129,7 +135,8 @@ export default function WhatIf() {
           </div>
 
           <div className={`rounded-lg p-4 border text-sm ${
-            result.roi > 50  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' :
+            result.roi > 100 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' :
+            result.roi > 30  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' :
             result.roi > 0   ? 'bg-amber-500/10   border-amber-500/30   text-amber-300'   :
                                'bg-rose-500/10    border-rose-500/30    text-rose-300'
           }`}>

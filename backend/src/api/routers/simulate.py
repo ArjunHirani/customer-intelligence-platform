@@ -29,24 +29,41 @@ def what_if_simulation(request: WhatIfRequest):
 
     customers = [dict(r._mapping) for r in rows]
     n = len(customers)
+    discount = float(request.discount_pct)
 
     avg_clv = sum(float(c['clv_12m'] or 0) for c in customers) / n if n > 0 else 0
     avg_monetary = sum(float(c['monetary'] or 0) for c in customers) / n if n > 0 else 0
+    avg_churn = sum(float(c['churn_score'] or 0.5) for c in customers) / n if n > 0 else 0.5
 
-    discount = float(request.discount_pct)
-    retention_lift = min(discount * 0.8, 40) / 100
-    estimated_revenue_saved = avg_clv * retention_lift * n
-    cost_of_intervention = avg_monetary * (discount / 100) * n
+    # Retention model:
+    # A 5% discount retains ~8% of churners, 10% retains ~15%, 20% retains ~28%, 30% retains ~38%
+    # Formula: retention_rate = 1 - e^(-discount/15)
+    import math
+    retention_rate = 1 - math.exp(-discount / 15)
+
+    # Customers saved = those who would churn * retention rate
+    customers_who_would_churn = n * avg_churn
+    customers_retained = customers_who_would_churn * retention_rate
+
+    # Revenue saved = retained customers * their avg CLV
+    estimated_revenue_saved = customers_retained * avg_clv
+
+    # Cost = discount applied to ALL targeted customers' next purchase (avg order = monetary/orders)
+    avg_order_value = avg_monetary / 10  # assume ~10 orders on avg
+    cost_of_intervention = n * avg_order_value * (discount / 100)
+
     roi = round(
         (estimated_revenue_saved - cost_of_intervention) / max(cost_of_intervention, 1) * 100, 2
     ) if cost_of_intervention > 0 else 0
 
-    if roi > 50:
+    if roi > 100:
+        recommendation = f"Excellent ROI of {roi:.1f}% with {discount:.0f}% discount. Strongly recommend this campaign."
+    elif roi > 30:
         recommendation = f"Strong ROI of {roi:.1f}% with {discount:.0f}% discount. Recommend proceeding."
     elif roi > 0:
         recommendation = f"Positive ROI of {roi:.1f}% with {discount:.0f}% discount. Campaign is viable."
     else:
-        recommendation = f"Negative ROI of {roi:.1f}% with {discount:.0f}% discount. Consider reducing the discount."
+        recommendation = f"Negative ROI of {roi:.1f}% with {discount:.0f}% discount. Consider reducing the discount or targeting fewer customers."
 
     return WhatIfResponse(
         segment=request.segment,
